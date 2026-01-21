@@ -6,7 +6,6 @@
  */
 
 import React, { useContext, useRef, useState } from 'react';
-import $ from 'jquery';
 import hathorLib from '@hathor/wallet-lib';
 import { t } from 'ttag'
 import { useDispatch, useSelector } from 'react-redux';
@@ -63,6 +62,7 @@ function CreateNFT() {
   const [errorMessage, setErrorMessage] = useState('');
   /** amount {number} Amount of tokens to create */
   const [amount, setAmount] = useState(null);
+  const [isAddressHidden, setIsAddressHidden] = useState(true);
 
   /**
    * Validates if the create NFT form is valid
@@ -223,12 +223,7 @@ function CreateNFT() {
    * @param {Object} e Event for the address checkbox input change
    */
   const handleCheckboxAddress = (e) => {
-    const value = e.target.checked;
-    if (value) {
-      $(addressDivRef.current).hide(400);
-    } else {
-      $(addressDivRef.current).show(400);
-    }
+    setIsAddressHidden(e.target.checked);
   }
 
   /**
@@ -324,7 +319,7 @@ function CreateNFT() {
               </label>
             </div>
           </div>
-          <div className="form-group col-5" ref={addressDivRef} style={{display: 'none'}}>
+          <div className="form-group col-5" ref={addressDivRef} style={{ display: isAddressHidden ? 'none' : 'block' }}>
             <label>{t`Destination address`}</label>
             <input ref={addressRef} type="text" placeholder={t`Address`} className="form-control" />
           </div>

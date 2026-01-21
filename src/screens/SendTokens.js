@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { t } from 'ttag';
 import SendTokensOne from '../components/SendTokensOne';
 import { useDispatch, useSelector } from 'react-redux';
@@ -74,7 +74,7 @@ function SendTokens() {
 
   // Create refs
   const formSendTokensRef = useRef();
-  const references = useRef([React.createRef()]);
+  const references = useRef([{ current: null }]);
   /**
    * Instance of SendTransaction containing tx data specifically for Ledger signing
    * @type MutableRefObject<SendTransaction>
@@ -247,23 +247,23 @@ function SendTokens() {
    *
    * @param {Object} tx Transaction sent data
    */
-  const onSendSuccess = (tx) => {
+  const onSendSuccess = useCallback((tx) => {
     globalModalContext.hideModal();
 
     // Must update the shared address, in case we have used one for the change
     dispatch(walletRefreshSharedAddress());
     navigate('/wallet/');
-  }
+  }, [globalModalContext, dispatch, navigate]);
 
   /**
    * Method executed when there is an error sending the tx
    *
    * @param {String} message Error message
    */
-  const onSendError = (message) => {
+  const onSendError = useCallback((message) => {
     globalModalContext.hideModal();
     setErrorMessage(message);
-  }
+  }, [globalModalContext]);
 
   /**
    * Method executed before sending a tx to be signed by Ledger
@@ -482,7 +482,7 @@ function SendTokens() {
       ) === undefined
     });
 
-    references.current.push(React.createRef());
+    references.current.push({ current: null });
     setTxTokens([...txTokens, newToken]);
   }
 
@@ -519,10 +519,10 @@ function SendTokens() {
     beforeSend();
   }
 
-  const renderAlertTokenList = (tokenList) => {
+  const renderAlertTokenList = useCallback((tokenList) => {
     const rows = tokenList.map(t => <li key={t.uid}><p>{t.name} ({t.symbol})</p></li>)
     return <ul>{rows}</ul>
-  }
+  }, []);
 
   /**
    * Renders the body for the ledger alert modal.
@@ -532,7 +532,7 @@ function SendTokens() {
    * @param {LEDGER_MODAL_STATE} modalState Defines how the modal will be rendered
    * @param {SendTransaction} [sendTransactionObj] Reference to tx already signed by Ledger, that will be sent
    */
-  const renderAlertBody = (modalState, sendTransactionObj) => {
+  const renderAlertBody = useCallback((modalState, sendTransactionObj) => {
     if (modalState === LEDGER_MODAL_STATE.WAITING_APPROVAL) {
       return (
         <div>
@@ -550,7 +550,7 @@ function SendTokens() {
     } else {
       throw new Error('Invalid modal state');
     }
-  }
+  }, [onSendSuccess, onSendError]);
 
   const renderOnePage = () => {
     return txTokens.map((token, index) => {
@@ -570,7 +570,7 @@ function SendTokens() {
   const addDataOutput = () => {
     const uId = uniqueId('data_output');
     setDataOutputs([...dataOutputs, uId]);
-    dataOutputRefs.current[uId] = React.createRef();
+    dataOutputRefs.current[uId] = { current: null };
   };
 
   const removeDataOutput = (index) => {

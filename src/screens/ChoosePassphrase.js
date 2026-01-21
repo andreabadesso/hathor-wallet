@@ -8,7 +8,6 @@
 import React, { useRef, useState, useContext } from 'react';
 import { t } from 'ttag'
 
-import $ from 'jquery';
 import walletUtils from '../utils/wallet';
 import BackButton from '../components/BackButton';
 import { GlobalModalContext, MODAL_TYPES } from '../components/GlobalModal';
@@ -36,6 +35,7 @@ function ChoosePassphrase() {
   const [errorMessage, setErrorMessage] = useState('');
   /** firstStep {boolean} If should show the first step of the form, or the second one */
   const [firstStep, setFirstStep] = useState(true);
+  const [passphraseHidden, setPassphraseHidden] = useState(false);
 
   const modalContext = useContext(GlobalModalContext);
 
@@ -111,11 +111,7 @@ function ChoosePassphrase() {
    * Method called when checkbox for blank passphrase changes. We show/hide the passphrase fields depending if is checked.
    */
   const blankPasswordCheckboxChange = () => {
-    if (blankPassphraseRef.current.checked) {
-      $(passphraseWrapperRef.current).hide(300);
-    } else {
-      $(passphraseWrapperRef.current).show(300);
-    }
+    setPassphraseHidden(blankPassphraseRef.current.checked);
   }
 
   const renderFirstForm = () =>
@@ -133,7 +129,7 @@ function ChoosePassphrase() {
     (
       <form ref={passphraseFormRef} className="w-100">
         <div className="row">
-          <div className="col-6" ref={passphraseWrapperRef}>
+          <div className="col-6" ref={passphraseWrapperRef} style={{ display: passphraseHidden ? 'none' : 'block' }}>
             <input ref={passphraseRef} type="password" autoComplete="off" placeholder="Passphrase"
                    className="form-control" />
             <input ref={confirmPassphraseRef} type="password" autoComplete="off" placeholder="Confirm passphrase"

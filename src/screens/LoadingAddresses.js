@@ -65,7 +65,7 @@ function LoadingAddresses() {
     return () => {
       clearTimeout(timeoutId.current);
     }
-  }, []);
+  }, [dispatch, location]);
 
   // If finished loading addresses we redirect back to the page that was supposed to load at first
   if (canRedirect && !loadingAddresses) {

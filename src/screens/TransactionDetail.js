@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import ReactLoading from 'react-loading';
 import { t } from 'ttag';
 import TxData from '../components/TxData';
@@ -44,7 +44,7 @@ function TransactionDetail() {
   /**
    * Get accumulated weight and confirmation level of the transaction
    */
-  const getConfirmationData = async () => {
+  const getConfirmationData = useCallback(async () => {
     setConfirmationData(null);
     setConfirmationDataError(false);
 
@@ -56,12 +56,12 @@ function TransactionDetail() {
       setConfirmationData(null);
       setConfirmationDataError(true);
     }
-  }
+  }, [txId, wallet]);
 
   /**
    * Get transaction in the server when mounting the page
    */
-  const getTx = async () => {
+  const getTx = useCallback(async () => {
     setLoaded(false);
     setTransaction(null);
     setMeta(null);
@@ -110,14 +110,14 @@ function TransactionDetail() {
       setTransaction(null)
       setIsTxNotFound(txNotFoundOnWallet);
     }
-  }
+  }, [txId, wallet, getConfirmationData]);
 
   /**
    * Fetch tx data whenever the id is updated
    */
   useEffect(() => {
     getTx();
-  }, [txId]);
+  }, [txId, getTx]);
 
   /**
    * Method called when user clicked on 'See on explorer' link

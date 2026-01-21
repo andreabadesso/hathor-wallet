@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { t } from 'ttag';
 import { useDispatch, useSelector } from 'react-redux';
 import { setWCConnectionState, types } from '../actions';
@@ -48,18 +48,28 @@ function ReownConnect() {
   // Check if connection failed
   const connectionFailed = connectionState === REOWN_CONNECTION_STATE.FAILED;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = useCallback((e) => {
     e.preventDefault();
     // Then dispatch the URI inputted action
     dispatch({ type: types.REOWN_URI_INPUTTED, payload: uri });
-  };
+  }, [dispatch, uri]);
 
-  const handleDisconnect = (sessionId) => {
+  const handleDisconnect = useCallback((sessionId) => {
     dispatch({
       type: types.REOWN_CANCEL_SESSION,
       payload: { id: sessionId },
     });
-  };
+  }, [dispatch]);
+
+  const onNewConnectionClick = useCallback(() => {
+    setShowNewConnectionForm(true);
+  }, []);
+
+  const onCancelConnectionClick = useCallback(() => {
+    setShowNewConnectionForm(false);
+    setUri('');
+    dispatch({ type: types.REOWN_SET_CONNECTION_STATE, payload: REOWN_CONNECTION_STATE.IDLE });
+  }, [dispatch]);
 
   const renderSession = (session, sessionId) => {
     const metadata = session.peer.metadata;
@@ -107,7 +117,7 @@ function ReownConnect() {
                 <h4 className="mb-0">{t`New Connection`}</h4>
                 <button 
                   className="btn btn-hathor" 
-                  onClick={() => setShowNewConnectionForm(true)}
+                  onClick={onNewConnectionClick}
                 >
                   {t`Add New Connection`}
                 </button>
@@ -143,11 +153,7 @@ function ReownConnect() {
                     <button 
                       type="button" 
                       className="btn btn-light mr-2"
-                      onClick={() => {
-                        setShowNewConnectionForm(false);
-                        setUri('');
-                        dispatch({ type: types.REOWN_SET_CONNECTION_STATE, payload: REOWN_CONNECTION_STATE.IDLE });
-                      }}
+                      onClick={onCancelConnectionClick}
                       disabled={isConnecting}
                     >
                       {t`Cancel`}
