@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { t } from 'ttag'
 import { get } from 'lodash';
 import { useSelector } from 'react-redux';
@@ -71,18 +71,18 @@ function NFTList() {
   const [totalPages, setTotalPages] = useState(0);
   const { nftData } = useSelector(retrieveNftDataFromState);
 
-  useEffect(() => {
-    setTotalPages(getTotalPages());
-  }, []);
-
   /**
    * Return total number of pages of the list
    *
    * @return {Number} Total number of pages of the list
    */
-  const getTotalPages = () => {
+  const getTotalPages = useCallback(() => {
     return Math.ceil(nftData.length / NFT_LIST_PER_PAGE);
-  }
+  }, [nftData]);
+
+  useEffect(() => {
+    setTotalPages(getTotalPages());
+  }, [getTotalPages]);
 
   /**
    * Event received from pagination component after a page button in clicked

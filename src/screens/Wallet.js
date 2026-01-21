@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState, useCallback } from 'react';
 import hathorLib from '@hathor/wallet-lib';
 import { t } from 'ttag';
 import { get } from 'lodash';
@@ -89,46 +89,24 @@ function Wallet() {
   // Initialize the screen on mount
   useEffect(() => {
     initializeWalletScreen();
-  }, []);
+  }, [initializeWalletScreen]);
 
   // Re-initialize the screen when the selected token changes
   useEffect(() => {
     initializeWalletScreen();
-  }, [selectedToken]);
+  }, [selectedToken, initializeWalletScreen]);
 
   // When the tokens history changes, update the token info
   useEffect(() => {
     updateTokenInfo(selectedToken);
     updateWalletInfo(selectedToken);
-  }, [tokensHistory]);
-
-  /**
-   * Resets the state data and triggers token information requests
-   */
-  async function initializeWalletScreen() {
-    // Reset the screen state
-    setTotalSupply(null);
-    setCanMint(false);
-    setCanMelt(false);
-    setTransactionsCount(null);
-    setShouldShowAdministrativeTab(false);
-
-    // No need to download token info and mint/melt info if the token is hathor
-    if (selectedToken === hathorLib.constants.NATIVE_TOKEN_UID) {
-      return;
-    }
-
-    // Fires the fetching of all token data
-    calculateShouldShowAdministrativeTab(selectedToken);
-    updateTokenInfo(selectedToken);
-    updateWalletInfo(selectedToken);
-  }
+  }, [tokensHistory, selectedToken, updateTokenInfo, updateWalletInfo]);
 
   /**
    * Update token state after didmount or props update
    * @param {string} tokenUid
    */
-  const updateWalletInfo = async (tokenUid) => {
+  const updateWalletInfo = useCallback(async (tokenUid) => {
     const mintUtxos = await wallet.getMintAuthority(tokenUid, { many: true });
     const meltUtxos = await wallet.getMeltAuthority(tokenUid, { many: true });
 
@@ -142,14 +120,14 @@ function Wallet() {
     const meltCount = meltUtxos.length;
     setMintCount(mintCount);
     setMeltCount(meltCount);
-  }
+  }, [selectedToken, wallet]);
 
   /**
    * Fetches mint and melt data for a token
    * @param {string} tokenUid
    * @returns {Promise<void>}
    */
-  async function updateTokenInfo(tokenUid) {
+  const updateTokenInfo = useCallback(async (tokenUid) => {
     // No need to fetch token info if the token is hathor
     if (tokenUid === hathorLib.constants.NATIVE_TOKEN_UID) {
       return;
@@ -167,14 +145,14 @@ function Wallet() {
     setCanMint(authorities.mint);
     setCanMelt(authorities.melt);
     setTransactionsCount(totalTransactions);
-  }
+  }, [selectedToken, wallet]);
 
   /**
    * We show the administrative tools tab only for the users that one day had an authority output, even if it was already spent
    *
    * This will set the shouldShowAdministrativeTab state param based on the response of getMintAuthority and getMeltAuthority
    */
-  const calculateShouldShowAdministrativeTab = async (tokenId) => {
+  const calculateShouldShowAdministrativeTab = useCallback(async (tokenId) => {
     const mintAuthorities = await wallet.getMintAuthority(tokenId, { skipSpent: false });
 
     if (mintAuthorities.length > 0) {
@@ -188,7 +166,29 @@ function Wallet() {
     }
 
     return setShouldShowAdministrativeTab(false);
-  }
+  }, [wallet]);
+
+  /**
+   * Resets the state data and triggers token information requests
+   */
+  const initializeWalletScreen = useCallback(async () => {
+    // Reset the screen state
+    setTotalSupply(null);
+    setCanMint(false);
+    setCanMelt(false);
+    setTransactionsCount(null);
+    setShouldShowAdministrativeTab(false);
+
+    // No need to download token info and mint/melt info if the token is hathor
+    if (selectedToken === hathorLib.constants.NATIVE_TOKEN_UID) {
+      return;
+    }
+
+    // Fires the fetching of all token data
+    calculateShouldShowAdministrativeTab(selectedToken);
+    updateTokenInfo(selectedToken);
+    updateWalletInfo(selectedToken);
+  }, [selectedToken, calculateShouldShowAdministrativeTab, updateTokenInfo, updateWalletInfo]);
 
   /**
    * Triggered when user clicks to do the backup of words, then opens backup modal

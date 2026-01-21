@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { t } from 'ttag'
 
@@ -31,7 +31,7 @@ function Welcome() {
   const [formValidated, setFormValidated] = useState(false);
 
   const navigate = useNavigate();
-  const agreeForm = React.createRef();
+  const agreeForm = useRef(null);
 
   /**
    * When user clicks the button to start the wallet, then check form and redirect to Sentry Permission screen

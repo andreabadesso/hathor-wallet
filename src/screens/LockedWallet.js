@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import React, { useState, useEffect, useRef, useContext } from 'react';
+import React, { useState, useEffect, useRef, useContext, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { t } from 'ttag';
 import { useSelector, useDispatch } from "react-redux";
@@ -47,7 +47,7 @@ function LockedWallet() {
    *
    * @param {Object} e Event of when the button is clicked
    */
-  const unlockClicked = async (e) => {
+  const unlockClicked = useCallback(async (e) => {
     e.preventDefault();
 
     if (loading) {
@@ -84,28 +84,28 @@ function LockedWallet() {
     setLoading(true);
 
     dispatch(startWalletRequested({ pin }));
-  }
+  }, [loading, lockWalletPromise, dispatch, navigate]);
 
   /**
    * When reset modal validates, then execute method to reset all data from the wallet and redirect to Welcome screen
    */
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     context.hideModal();
     dispatch(walletReset());
     navigate('/welcome/');
-  }
+  }, [context, dispatch, navigate]);
 
   /**
    * When user clicks on the reset link, then raises a modal to asks for reset confirmation
    *
    * @param {Object} e Event of when the link is clicked
    */
-  const resetClicked = (e) => {
+  const resetClicked = useCallback((e) => {
     e.preventDefault();
     context.showModal(MODAL_TYPES.RESET_ALL_DATA, {
       success: handleReset,
     });
-  }
+  }, [context, handleReset]);
 
   return (
     <div className="content-wrapper flex align-items-center">
@@ -117,7 +117,7 @@ function LockedWallet() {
           </form>
           {errorMessage && <p className="mt-4 text-danger">{errorMessage}</p>}
           <div className="d-flex align-items-center justify-content-between flex-row w-100 mt-4">
-            <a className="mt-4" onClick={(e) => resetClicked(e)} href="true">{t`Reset all data`}</a>
+            <a className="mt-4" onClick={resetClicked} href="true">{t`Reset all data`}</a>
             <div className="d-flex align-items-center justify-content-between btn-hathor-loading-wrapper">
               {loading && (
                 <ReactLoading color={colors.purpleHathor} type='spin' width={24} height={24} className="loading" />

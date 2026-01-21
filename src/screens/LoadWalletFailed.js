@@ -45,7 +45,7 @@ export default function LoadFailed(props) {
         dispatch(hideGlobalModal());
       }
     });
-  }, [dispatch]);
+  }, [dispatch, context]);
 
   const reset = useCallback((e) => {
     e.preventDefault();

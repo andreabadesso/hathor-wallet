@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import React, { useState, useEffect, useContext, useRef, useCallback } from 'react';
 import { t } from 'ttag';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import wallet from '../utils/wallet';
@@ -282,11 +282,15 @@ function Settings() {
   const ledgerCustomTokens = LOCAL_STORE.isHardwareWallet() && version.isLedgerCustomTokenAllowed();
   const uniqueIdentifier = helpers.getUniqueId();
 
+  const toggleTimestamp = useCallback(() => {
+    setShowTimestamp(val => !val);
+  }, []);
+
   return (
     <div className="content-wrapper settings">
       <BackButton />
       <div>
-        <p onDoubleClick={() => setShowTimestamp(!showTimestamp)}><strong>{t`Date and time:`}</strong> {showTimestamp ? hathorLib.dateFormatter.dateToTimestamp(now) : now.toString()}</p>
+        <p onDoubleClick={toggleTimestamp}><strong>{t`Date and time:`}</strong> {showTimestamp ? hathorLib.dateFormatter.dateToTimestamp(now) : now.toString()}</p>
       </div>
       <div>
         <p><SpanFmt>{t`**Server:** You are connected to ${serverURL}`}</SpanFmt></p>

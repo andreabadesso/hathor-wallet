@@ -6,7 +6,6 @@
  */
 
 import React, { useContext, useRef, useState } from 'react';
-import $ from 'jquery';
 import hathorLib from '@hathor/wallet-lib';
 import { t } from 'ttag'
 import { get } from 'lodash';
@@ -55,6 +54,7 @@ function CreateToken() {
   const [errorMessage, setErrorMessage] = useState('');
   /** amount {number} Amount of tokens to create */
   const [amount, setAmount] = useState(null);
+  const [isAddressHidden, setIsAddressHidden] = useState(true);
 
   /**
    * Validates if the create token form is valid
@@ -195,12 +195,7 @@ function CreateToken() {
    * @param {Object} e Event for the address checkbox input change
    */
   const handleCheckboxAddress = (e) => {
-    const value = e.target.checked;
-    if (value) {
-      $(addressWrapperRef.current).hide(400);
-    } else {
-      $(addressWrapperRef.current).show(400);
-    }
+    setIsAddressHidden(e.target.checked);
   }
 
   /**
@@ -285,7 +280,7 @@ function CreateToken() {
               </label>
             </div>
           </div>
-          <div className="form-group col-5" ref={addressWrapperRef} style={{display: 'none'}}>
+          <div className="form-group col-5" ref={addressWrapperRef} style={{ display: isAddressHidden ? 'none' : 'block' }}>
             <label>{t`Destination address`}</label>
             <input ref={addressInputRef} type="text" placeholder={t`Address`} className="form-control" />
           </div>
