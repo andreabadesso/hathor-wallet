@@ -296,13 +296,7 @@ class TxData extends React.Component {
    */
   toggleRaw = (e) => {
     e.preventDefault();
-    this.setState({ raw: !this.state.raw }, () => {
-      if (this.state.raw) {
-        $(this.refs.rawTx).show(300);
-      } else {
-        $(this.refs.rawTx).hide(300);
-      }
-    });
+    this.setState({ raw: !this.state.raw });
   }
 
   /**
@@ -543,7 +537,6 @@ class TxData extends React.Component {
         if (!(e instanceof hathorLib.errors.ParseScriptError)) {
           // Parse script error is the expected error in case the output script
           // is not a script data. If we get another error here, we should at least log it
-          console.log('Unexpected error', e);
         }
       }
 
@@ -1050,7 +1043,7 @@ class TxData extends React.Component {
               <i className="fa fa-clone pointer ml-1" title={t`Copy raw tx to clipboard`}></i>
             </CopyToClipboard>
           : null}
-          <p className="mt-3" ref="rawTx" style={{display: 'none'}}>{this.props.transaction.raw}</p>
+          <p className="mt-3" ref="rawTx" style={{display: this.state.raw ? 'block' : 'none'}}>{this.props.transaction.raw}</p>
         </div>
       );
     }
