@@ -39,22 +39,19 @@ export function* registerNanoContract({ payload }) {
   const blueprintsData = yield select((state) => state.blueprintsData);
 
   const wallet = getGlobalWallet();
-  if (!wallet.isReady()) {
-    console.debug('Fail registering Nano Contract because wallet is not ready yet.');
-    yield put(nanoContractRegisterError(t`Wallet is not ready.`));
-    return;
-  }
+    if (!wallet.isReady()) {
+      yield put(nanoContractRegisterError(t`Wallet is not ready.`));
+      return;
+    }
 
   const isRegistered = yield call([wallet.storage, wallet.storage.isNanoContractRegistered], ncId);
-  if (isRegistered) {
-    console.debug('Fail registering Nano Contract because it is already registered.');
+    if (isRegistered) {
     yield put(nanoContractRegisterError(t`Nano contract is already registered.`));
     return;
   }
 
   const isAddressMine = yield call([wallet, wallet.isAddressMine], address);
-  if (!isAddressMine) {
-    console.debug('Fail registering Nano Contract because address do not belongs to this wallet.');
+    if (!isAddressMine) {
     yield put(nanoContractRegisterError(t`Address does not belong to the wallet.`));
     return;
   }
@@ -102,7 +99,6 @@ export function* registerNanoContract({ payload }) {
     yield put(nanoContractRegisterError(t`Error while registering the nano contract.`));
   }
 
-  console.debug('Success registering Nano Contract.');
   // emit action NANOCONTRACT_REGISTER_SUCCESS
   yield put(nanoContractRegisterSuccess(nc));
 }
@@ -144,21 +140,18 @@ export function* checkNanoIdValid(ncId) {
     response = yield call([wallet, wallet.getFullTxById], ncId);
   } catch (e) {
     // invalid tx
-    console.debug(`Fail loading Nano Contract detail because [ncId=${ncId}] is an invalid tx.`);
     yield put(nanoContractDetailSetStatus({ status: NANO_CONTRACT_DETAIL_STATUS.ERROR, error: t`Transaction is invalid.` }));
     return false;
   }
 
   const isVoided = response.meta.voided_by.length > 0;
   if (isVoided) {
-    console.debug(`Fail loading Nano Contract detail because [ncId=${ncId}] is a voided tx.`);
     yield put(nanoContractDetailSetStatus({ status: NANO_CONTRACT_DETAIL_STATUS.ERROR, error: t`Transaction is voided.` }));
     return false;
   }
 
   const isNanoContractCreate = nanoUtils.isNanoContractCreateTx(response.tx);
   if (!isNanoContractCreate) {
-    console.debug(`Fail loading Nano Contract detail because [ncId=${ncId}] is not a nano contract creation tx.`);
     yield put(nanoContractDetailSetStatus({ status: NANO_CONTRACT_DETAIL_STATUS.ERROR, error: t`Transaction must be a nano contract creation.` }));
     return false;
   }
@@ -174,6 +167,9 @@ export function* checkNanoIdValid(ncId) {
     while (true) {
       // Wait 5s, then we fetch the data again to check if is has been confirmed
       yield delay(NANOCONTRACT_WAIT_TX_CONFIRMED_DELAY);
+      if (yield cancelled()) {
+        return false;
+      }
       const nanoContractDetailState = yield select((state) => state.nanoContractDetailState);
       if (nanoContractDetailState.status !== NANO_CONTRACT_DETAIL_STATUS.WAITING_TX_CONFIRMATION) {
         // User unmounted the screen, so we must stop the saga
@@ -260,10 +256,8 @@ export function* fetchBlueprintInformation({ payload: blueprintId }) {
   try {
     const blueprintInformation = yield call([ncApi, ncApi.getBlueprintInformation], blueprintId);
     yield put(addBlueprintInformation(blueprintInformation));
-    console.debug(`Success fetching blueprint info. id = ${blueprintId}`);
   } catch (error) {
     if (error instanceof hathorLibErrors.NanoRequest404Error) {
-      console.debug(`Blueprint not found. id = ${blueprintId}`);
       // For now, we'll just log the 404 - the UI can handle missing blueprint info gracefully
     } else {
       console.error('Error while loading blueprint information.', error);

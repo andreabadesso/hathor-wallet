@@ -36,7 +36,7 @@ export function* changeNetworkSettings({ data, pin }) {
 
   // We only have a different websocket server on the wallet-service facade, so update the config singleton
   if (useWalletService) {
-    yield call([wallet, wallet.changeWsServer], newWsServer);
+    yield call([wallet, wallet.changeWsServer], data.walletServiceWS);
   }
 
   let versionData;

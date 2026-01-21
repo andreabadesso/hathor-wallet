@@ -226,12 +226,12 @@ export function* startWallet(action) {
   yield fork(listenForWalletReady, wallet);
 
   try {
-    console.log('[*] Start wallet.');
+
     const serverInfo = yield call([wallet, wallet.start], {
       pinCode: pin,
       password,
     });
-    console.log('[+] Start wallet.', serverInfo);
+
 
     const nativeToken = wallet.storage.getNativeTokenData();
     yield put(setNativeTokenData(nativeToken));
@@ -272,7 +272,7 @@ export function* startWallet(action) {
       console.error(e);
       // Return to locked screen when the wallet fails to start
       LOCAL_STORE.lock();
-      yield put(dispatch(setNavigateTo('/')));
+      yield put(setNavigateTo('/'));
       return
     }
   }
@@ -761,7 +761,7 @@ export function* onWalletReset() {
 }
 
 export function* onWalletServiceDisabled() {
-  console.debug('We are currently in the wallet-service and the feature-flag is disabled, reloading.');
+
   yield put(reloadWalletRequested());
 }
 

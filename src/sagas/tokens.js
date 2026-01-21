@@ -184,8 +184,7 @@ export function* fetchTokenMetadata({ tokenId }) {
       type: types.TOKEN_FETCH_METADATA_FAILED,
       tokenId,
     });
-    // eslint-disable-next-line
-    console.log('Error downloading metadata of token', tokenId);
+
   }
 }
 
@@ -355,7 +354,7 @@ function* fetchProposalTokenData(action) {
     const wallet = getGlobalWallet();
 
     // Fetching name and symbol data from the fullnode
-    const updatedTokenDetails = yield wallet.getTokenDetails(tokenUid);
+    const updatedTokenDetails = yield call([wallet, wallet.getTokenDetails], tokenUid);
     yield put(proposalTokenFetchSuccess(tokenUid, updatedTokenDetails.tokenInfo));
   } catch (e){
     console.error(`Error downloading proposal token data`, tokenUid, e.message);

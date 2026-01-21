@@ -146,7 +146,7 @@ function* createProposalOnBackend(action) {
         }
 
         // Generate a minimal redux object on the application state
-        yield(put(importProposal(proposalId, password)));
+        yield put(importProposal(proposalId, password));
 
         // Enrich the PartialTx with exhibition metadata
         const wallet = getGlobalWallet();
