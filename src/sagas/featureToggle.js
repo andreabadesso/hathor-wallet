@@ -75,7 +75,7 @@ export function* fetchTogglesRoutine() {
     } catch (e) {
       // No need to do anything here as it will try again automatically in
       // UNLEASH_POLLING_INTERVAL. Just prevent it from crashing the saga.
-      console.error('Erroed fetching feature toggles', e);
+      console.error('Errored fetching feature toggles', e);
     }
   }
 }
@@ -137,7 +137,7 @@ export function* monitorFeatureFlags(currentRetry = 0) {
   });
 
   try {
-    console.log('starting unleash with', options);
+
     yield call(() => unleashClient.updateContext(options));
     setUnleashClient(unleashClient);
 
@@ -230,7 +230,7 @@ export function* setupUnleashListeners(unleashClient) {
 }
 
 function mapFeatureToggles(toggles) {
-  console.log('feature toggles', toggles);
+
   return toggles.reduce((acc, toggle) => {
     acc[toggle.name] = get(
       toggle,

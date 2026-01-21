@@ -40,6 +40,7 @@ import { ReownModalTypes } from '../components/Reown/ReownModal';
 import {
   REOWN_PROJECT_ID,
   REOWN_FEATURE_TOGGLE,
+  REOWN_REOWN_ERROR_CODES,
 } from '../constants';
 import {
   types,
@@ -83,15 +84,6 @@ const AVAILABLE_METHODS = {
 };
 
 const AVAILABLE_EVENTS = [];
-
-const ERROR_CODES = {
-  UNAUTHORIZED_METHODS: 3001,
-  USER_DISCONNECTED: 6000,
-  USER_REJECTED: 5000,
-  USER_REJECTED_METHOD: 5002,
-  INVALID_PAYLOAD: 5003,
-  INTERNAL_ERROR: 5004,
-};
 
 /**
  * Extracts and normalizes error details from an error object
@@ -260,7 +252,7 @@ export function* refreshActiveSessions(extend = false) {
           yield call(() => walletKit.disconnectSession({
             topic: activeSessions[key].topic,
             reason: {
-              code: ERROR_CODES.USER_DISCONNECTED,
+              code: REOWN_ERROR_CODES.USER_DISCONNECTED,
               message: 'Unable to extend session',
             },
           }));
@@ -342,7 +334,7 @@ export function* clearSessions() {
     yield call(() => walletKit.disconnectSession({
       topic: activeSessions[key].topic,
       reason: {
-        code: ERROR_CODES.USER_DISCONNECTED,
+        code: REOWN_ERROR_CODES.USER_DISCONNECTED,
         message: '',
       },
     }));
@@ -439,7 +431,7 @@ export function* processRequest(action) {
         yield put(showGlobalModal(MODAL_TYPES.MESSAGE_SIGNING_FEEDBACK, { isLoading: false, isError: false }));
         break;
       default:
-        console.debug('Unknown response type:', response.type);
+        log.debug('Unknown response type:', response.type);
         break;
     }
 
@@ -560,7 +552,7 @@ export function* processRequest(action) {
             id: payload.id,
             jsonrpc: '2.0',
             error: {
-              code: ERROR_CODES.INTERNAL_ERROR,
+              code: REOWN_ERROR_CODES.INTERNAL_ERROR,
               message: errorMessage,
             },
           },
@@ -578,7 +570,7 @@ export function* processRequest(action) {
             id: payload.id,
             jsonrpc: '2.0',
             error: {
-              code: ERROR_CODES.USER_REJECTED_METHOD,
+              code: REOWN_ERROR_CODES.USER_REJECTED_METHOD,
               message: 'Rejected by the user',
             },
           },
@@ -591,7 +583,7 @@ export function* processRequest(action) {
 }
 
 const promptHandler = (dispatch) => (request, requestMetadata) =>
-  new Promise(async (resolve, reject) => {
+  new Promise((resolve, reject) => {
     switch (request.type) {
       case TriggerTypes.SendTransactionConfirmationPrompt: {
         const sendTransactionResponseTemplate = (accepted) => () => {
@@ -817,8 +809,7 @@ const promptHandler = (dispatch) => (request, requestMetadata) =>
           }));
         });
 
-        try {
-          const pin = await pinPromise;
+        pinPromise.then((pin) => {
           resolve({
             type: TriggerResponseTypes.PinConfirmationResponse,
             data: {
@@ -826,10 +817,10 @@ const promptHandler = (dispatch) => (request, requestMetadata) =>
               pinCode: pin,
             }
           });
-        } catch (error) {
+        }).catch((error) => {
           log.error('PIN confirmation error:', error);
           reject(error);
-        }
+        });
       } break;
 
       default:
@@ -1004,7 +995,7 @@ export function* onSessionProposal(action) {
         yield call([walletKit, walletKit.rejectSession], {
           id,
           reason: {
-            code: ERROR_CODES.UNAUTHORIZED_METHODS,
+            code: REOWN_ERROR_CODES.UNAUTHORIZED_METHODS,
             message: 'Required methods are not supported',
           },
         });
@@ -1076,7 +1067,7 @@ export function* onSessionProposal(action) {
       yield call([walletKit, walletKit.rejectSession], {
         id,
         reason: {
-          code: ERROR_CODES.USER_REJECTED,
+          code: REOWN_ERROR_CODES.USER_REJECTED,
           message: 'User rejected the session',
         },
       });
@@ -1104,7 +1095,7 @@ export function* onSessionProposal(action) {
         yield call([walletKit, walletKit.rejectSession], {
           id,
           reason: {
-            code: ERROR_CODES.USER_REJECTED,
+            code: REOWN_ERROR_CODES.USER_REJECTED,
             message: 'Connection failed',
           },
         });
@@ -1191,7 +1182,7 @@ export function* onCancelSession(action) {
     yield call(() => walletKit.disconnectSession({
       topic: activeSessions[action.payload.id].topic,
       reason: {
-        code: ERROR_CODES.USER_DISCONNECTED,
+        code: REOWN_ERROR_CODES.USER_DISCONNECTED,
         message: 'User cancelled the session',
       },
     }));
